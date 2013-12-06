@@ -31,7 +31,7 @@
     </parent>
 
     <groupId>org.everit.db</groupId>
-    <artifactId>lqmg-maven-plugin</artifactId>
+    <artifactId>lb2qd-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
     <version>1.0.0-SNAPSHOT</version>
 
@@ -39,7 +39,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <projectpath>lqmg-maven-plugin</projectpath>
+        <projectpath>lb2qd-maven-plugin</projectpath>
     </properties>
 
     <scm>

@@ -1,4 +1,4 @@
-package org.everit.db.lqmg.maven.plugin;
+package org.everit.db.lb2qd.plugin;
 
 /*
  * Copyright (c) 2011, Everit Kft.
@@ -31,31 +31,32 @@ import org.everit.db.lqmg.Main;
  * Generating QueryDSL java sources.
  */
 @Mojo(name = "generate")
-public class QueryDSLGenerateMojo extends AbstractMojo {
+public class LiquiBaseToQueryDslMojo extends AbstractMojo {
 
     /**
      * The LiquiBase XML place on the classpath.
      */
-    @Parameter(required = true, property = "lqmg.sourceXML")
+    @Parameter(required = true, property = "lb2qd.sourceXML")
     private String sourceXML;
 
     /**
      * The package where the generated Java classes.
      */
-    @Parameter(required = true, property = "lqmg.packageName")
+    @Parameter(required = true, property = "lb2qd.packageName")
     private String packageName;
 
     /**
      * The place where generated the classes. Default value is ${project.build.directory}.
      */
-    @Parameter(required = true, property = "lqmg.targetFolder", defaultValue = "${project.build.directory}")
+    @Parameter(required = true, property = "lb2qd.targetFolder",
+            defaultValue = "${project.build.directory}/generated-sources/lbqd")
     private String targetFolder;
 
     /**
      * Those are the location of the XML by commas, which are needed for external relations, but java class will be
      * generated from them.
      */
-    @Parameter(required = false, property = "lqmg.externalXMLs")
+    @Parameter(required = false, property = "lb2qd.externalXMLs")
     private String externalXMLs;
 
     @Override
