@@ -23,6 +23,7 @@ package org.everit.db.lb2qd.plugin;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.everit.db.lqmg.Main;
@@ -30,8 +31,8 @@ import org.everit.db.lqmg.Main;
 /**
  * Generating QueryDSL java sources.
  */
-@Mojo(name = "generate")
-public class LiquiBaseToQueryDslMojo extends AbstractMojo {
+@Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
+public class LiquiBaseToQueryDslMojo extends AbstractMojo { // implements ILifecycleMapping {
 
     /**
      * The LiquiBase XML place on the classpath.
@@ -59,9 +60,55 @@ public class LiquiBaseToQueryDslMojo extends AbstractMojo {
     @Parameter(required = false, property = "lb2qd.externalXMLs")
     private String externalXMLs;
 
+    // @Override
+    // public void configure(final ProjectConfigurationRequest request, final IProgressMonitor monitor)
+    // throws CoreException {
+    // for (AbstractProjectConfigurator configurator : getProjectConfigurators(request.getMavenProjectFacade(),
+    // monitor)) {
+    // if (monitor.isCanceled()) {
+    // throw new OperationCanceledException();
+    // }
+    // configurator.configure(request, monitor);
+    // }
+    // }
+
     @Override
     public void execute() throws MojoExecutionException {
         Main.generate(sourceXML, packageName, targetFolder, externalXMLs);
     }
 
+    // @Override
+    // public Map<MojoExecutionKey, List<AbstractBuildParticipant>> getBuildParticipants(
+    // final IMavenProjectFacade project,
+    // final IProgressMonitor monitor) throws CoreException {
+    // MojoExecutionKey key = new MojoExecutionKey("org.everit.db", "lb2qd-maven-plugin", "1.0.0-SNAPSHOT",
+    // "generate", LifecyclePhase.GENERATE_SOURCES.id(), UUID.randomUUID().toString());
+    //
+    // return null;
+    // };
+    //
+    // @Override
+    // public String getId() {
+    // // TODO Auto-generated method stub
+    // return null;
+    // }
+    //
+    // @Override
+    // public String getName() {
+    // // TODO Auto-generated method stub
+    // return null;
+    // }
+    //
+    // @Override
+    // public void unconfigure(final ProjectConfigurationRequest request, final IProgressMonitor monitor)
+    // throws CoreException {
+    // for (AbstractProjectConfigurator configurator : getProjectConfigurators(request.getMavenProjectFacade(),
+    // monitor)) {
+    // if (monitor.isCanceled()) {
+    // throw new OperationCanceledException();
+    // }
+    // configurator.unconfigure(request, monitor);
+    // }
+    //
+    // }
 }

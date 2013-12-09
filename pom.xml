@@ -106,7 +106,23 @@
         </plugins>
     </build>
 
+    <repositories>
+        <repository>
+            <id>sonatype-forge</id>
+            <url>https://repository.sonatype.org/content/groups/forge/</url>
+        </repository>
+    </repositories>
     <dependencies>
+<!--         <dependency> -->
+<!--             <groupId>org.eclipse</groupId> -->
+<!--             <artifactId>org.eclipse.core.runtime</artifactId> -->
+<!--             <version>3.3.100.v20070530</version> -->
+<!--         </dependency> -->
+<!--         <dependency> -->
+<!--             <groupId>org.eclipse.m2e</groupId> -->
+<!--             <artifactId>org.eclipse.m2e.core</artifactId> -->
+<!--             <version>1.3.0-SNAPSHOT</version> -->
+<!--         </dependency> -->
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
