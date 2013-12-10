@@ -21,36 +21,41 @@ package org.everit.db.lb2qd.plugin;
  * MA 02110-1301  USA
  */
 
+import java.io.File;
+
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.everit.db.lqmg.Main;
+import org.sonatype.plexus.build.incremental.BuildContext;
 
 /**
  * Generating QueryDSL java sources.
+ * 
  */
 @Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
-public class LiquiBaseToQueryDslMojo extends AbstractMojo { // implements ILifecycleMapping {
+public class LiquiBaseToQueryDslMojo extends AbstractMojo {
 
     /**
-     * The LiquiBase XML place on the classpath.
+     * Path to the liquibase changelog file.
      */
     @Parameter(required = true, property = "lb2qd.sourceXML")
     private String sourceXML;
 
     /**
-     * The package where the generated Java classes.
+     * he java package of the generated QueryDSL metamodel classes. Default-value: empty, that means that the package
+     * will be either empty or derived from the schema.
      */
-    @Parameter(required = true, property = "lb2qd.packageName")
+    @Parameter(required = false, property = "lb2qd.packageName", defaultValue = "")
     private String packageName;
 
     /**
-     * The place where generated the classes. Default value is ${project.build.directory}.
+     * The folder where source will be generated to.
      */
-    @Parameter(required = true, property = "lb2qd.targetFolder",
-            defaultValue = "${project.build.directory}/generated-sources/lbqd")
+    @Parameter(required = true, property = "lb2qd.targetFolder")
     private String targetFolder;
 
     /**
@@ -60,55 +65,31 @@ public class LiquiBaseToQueryDslMojo extends AbstractMojo { // implements ILifec
     @Parameter(required = false, property = "lb2qd.externalXMLs")
     private String externalXMLs;
 
-    // @Override
-    // public void configure(final ProjectConfigurationRequest request, final IProgressMonitor monitor)
-    // throws CoreException {
-    // for (AbstractProjectConfigurator configurator : getProjectConfigurators(request.getMavenProjectFacade(),
-    // monitor)) {
-    // if (monitor.isCanceled()) {
-    // throw new OperationCanceledException();
-    // }
-    // configurator.configure(request, monitor);
-    // }
-    // }
+    /**
+     * The schema name pattern. Must match the schema name as it is stored in the database. Retrieves those without a
+     * schema. <code>null</code> means that the schema name should not be used to narrow the search.
+     */
+    @Parameter(required = false, property = "lb2qd.schemaPattern", defaultValue = "")
+    private String schemaPattern;
+
+    // TODO write java DOC
+    @Parameter(required = false, property = "lb2qd.schemaToPackage")
+    private boolean schemaToPackage = true;
+
+    @Component
+    protected BuildContext buildContext;
 
     @Override
     public void execute() throws MojoExecutionException {
+        // TODO removing previous generated source?
+
+        // TODO actualizing the generate projekt.
+        File xmlFile = new File(sourceXML);
+        if (buildContext.hasDelta(xmlFile)) {
+            Main.generate(sourceXML, packageName, targetFolder, externalXMLs);
+            return;
+        }
+        // generate all event.
         Main.generate(sourceXML, packageName, targetFolder, externalXMLs);
     }
-
-    // @Override
-    // public Map<MojoExecutionKey, List<AbstractBuildParticipant>> getBuildParticipants(
-    // final IMavenProjectFacade project,
-    // final IProgressMonitor monitor) throws CoreException {
-    // MojoExecutionKey key = new MojoExecutionKey("org.everit.db", "lb2qd-maven-plugin", "1.0.0-SNAPSHOT",
-    // "generate", LifecyclePhase.GENERATE_SOURCES.id(), UUID.randomUUID().toString());
-    //
-    // return null;
-    // };
-    //
-    // @Override
-    // public String getId() {
-    // // TODO Auto-generated method stub
-    // return null;
-    // }
-    //
-    // @Override
-    // public String getName() {
-    // // TODO Auto-generated method stub
-    // return null;
-    // }
-    //
-    // @Override
-    // public void unconfigure(final ProjectConfigurationRequest request, final IProgressMonitor monitor)
-    // throws CoreException {
-    // for (AbstractProjectConfigurator configurator : getProjectConfigurators(request.getMavenProjectFacade(),
-    // monitor)) {
-    // if (monitor.isCanceled()) {
-    // throw new OperationCanceledException();
-    // }
-    // configurator.unconfigure(request, monitor);
-    // }
-    //
-    // }
 }

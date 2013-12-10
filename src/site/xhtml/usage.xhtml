@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2011, Everit Kft.
+
+    All rights reserved.
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 3 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+    MA 02110-1301  USA
+
+-->
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<body>
+	<h1>Usage</h1>
+	<h2>Dependency collection</h2>
+	<p>No required dependency collection.</p>
+	
+	<h2>Plugin execution</h2>
+
+	<p>The plugin requires some mandatory data that can be run. Futhermore must be set the plguin goals.</p>
+	
+	<h3>Minimal configuration</h3>
+	<div class="source">
+		<pre>
+&lt;plugin&gt;
+    &lt;groupId&gt;org.everit.db&lt;/groupId&gt;
+    &lt;artifactId&gt;lb2qd-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+    &lt;executions&gt;
+      &lt;execution&gt;
+        &lt;goals&gt;
+          &lt;goal&gt;generate&lt;/goal&gt;
+        &lt;/goals&gt;
+        &lt;configuration&gt;
+          &lt;sourceXML&gt;${project.basedir}/src/main/resources/META-INF/changeLog/changeLog.xml&lt;/sourceXML&gt;
+          &lt;packageName&gt;com.example.lbqd&lt;/packageName&gt;
+        &lt;/configuration&gt;
+      &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;
+			</pre>
+	</div>
+	<p>This case when builded the project generated JAVA sources to &#36;{project.build.path}/target/generated-sources/lbqd/{packageName}. The sourceXML says where found the LiguiBase XML and packageName says to which package includes the classes.</p>
+	
+	<h3>Full configuration</h3>
+	<div class="source">
+		<pre>
+&lt;plugin&gt;
+    &lt;groupId&gt;org.everit.db&lt;/groupId&gt;
+    &lt;artifactId&gt;lb2qd-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0-SNAPSHOT&lt;/version&gt;
+    &lt;executions&gt;
+      &lt;execution&gt;
+	    &lt;phase&gt;generate-sources&lt;/phase&gt;
+        &lt;goals&gt;
+          &lt;goal&gt;generate&lt;/goal&gt;
+        &lt;/goals&gt;
+        &lt;configuration&gt;
+          &lt;sourceXML&gt;${project.basedir}/src/main/resources/META-INF/changeLog/changeLog.xml&lt;/sourceXML&gt;
+          &lt;packageName&gt;com.example.lbqd&lt;/packageName&gt;
+          &lt;targetFolder&gt;${project.basedir}/src/main/java&lt;/targetFolder&gt;
+        &lt;/configuration&gt;
+      &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;
+			</pre>
+	</div>
+	<p>This case when builded the project generated JAVA sources to &#36;{project.basedir}/src/main/java/{packageName}. The sourceXML says where found the LiguiBase XML and packageName says to which package includes the classes.</p>
+	
+	<h3>Configurations</h3>
+	<p>A plugin configuration says to place of source XML, generated target folder, and the package name. Furthermore says plugin goals. </p>
+	<table>
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Description</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><p>phase</p></td>
+				<td><p>Says the build lifecycle phase. Default lifecycle phase: generated-sources.</p></td>
+			</tr>
+			<tr>
+				<td><p>goal</p></td>
+				<td><p>Says the execute goal. See more information <a href="plugin-info.html">Goals</a></p></td>
+			</tr>
+			<tr>
+				<td><p>configuration</p></td>
+				<td><p>Contains the plugin configurations (optional and required settings).</p>
+					 <ul>
+						 <li><a href="plugin-info.html#sourceXML">sourceXML</a></li>
+						 <li><a href="plugin-info.html#packageName">packageName</a></li>
+						 <li><a href="plugin-info.html#targetFolder">targetFolder</a></li>
+					 </ul>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</body>
+</html>
