@@ -123,9 +123,14 @@
             <version>3.2</version>
         </dependency>
         <dependency>
-            <groupId>org.everit.db</groupId>
-            <artifactId>org.everit.lqmg</artifactId>
+            <groupId>org.everit</groupId>
+            <artifactId>org.everit.db.lqmg</artifactId>
             <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-project</artifactId>
+            <version>2.2.1</version>
         </dependency>
     </dependencies>
 </project>

@@ -22,6 +22,10 @@ package org.everit.db.lb2qd.plugin;
  */
 
 import java.io.File;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import liquibase.resource.ClassLoaderResourceAccessor;
 
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -29,7 +33,9 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.everit.db.lqmg.Main;
+import org.apache.maven.project.MavenProject;
+import org.everit.db.lqmg.GenerationProperties;
+import org.everit.db.lqmg.LQMG;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 /**
@@ -39,6 +45,7 @@ import org.sonatype.plexus.build.incremental.BuildContext;
 @Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
 public class LiquiBaseToQueryDslMojo extends AbstractMojo {
 
+    private static final String EMPTY_VALUE = "DEFAULT_EMPTY_VALUE";
     /**
      * Path to the liquibase changelog file.
      */
@@ -49,7 +56,7 @@ public class LiquiBaseToQueryDslMojo extends AbstractMojo {
      * he java package of the generated QueryDSL metamodel classes. Default-value: empty, that means that the package
      * will be either empty or derived from the schema.
      */
-    @Parameter(required = false, property = "lb2qd.packageName", defaultValue = "")
+    @Parameter(required = false, property = "lb2qd.packageName", defaultValue = EMPTY_VALUE)
     private String packageName;
 
     /**
@@ -59,22 +66,19 @@ public class LiquiBaseToQueryDslMojo extends AbstractMojo {
     private String targetFolder;
 
     /**
-     * Those are the location of the XML by commas, which are needed for external relations, but java class will be
-     * generated from them.
+     * The schema to package.
      */
-    @Parameter(required = false, property = "lb2qd.externalXMLs")
-    private String externalXMLs;
+    @Parameter(required = false, property = "lb2qb.schemaToPackage", defaultValue = "true")
+    private boolean schemaToPackage;
 
     /**
-     * The schema name pattern. Must match the schema name as it is stored in the database. Retrieves those without a
-     * schema. <code>null</code> means that the schema name should not be used to narrow the search.
+     * A schema name pattern; must match the schema name as it is stored in the database.
      */
-    @Parameter(required = false, property = "lb2qd.schemaPattern", defaultValue = "")
+    @Parameter(required = false, property = "lb2qb.schemaPattern", defaultValue = EMPTY_VALUE)
     private String schemaPattern;
 
-    // TODO write java DOC
-    @Parameter(required = false, property = "lb2qd.schemaToPackage")
-    private boolean schemaToPackage = true;
+    @Parameter(readonly = true, required = true, defaultValue = "${project}")
+    private MavenProject project;
 
     @Component
     protected BuildContext buildContext;
@@ -84,12 +88,31 @@ public class LiquiBaseToQueryDslMojo extends AbstractMojo {
         // TODO removing previous generated source?
 
         // TODO actualizing the generate projekt.
+        GenerationProperties params = new GenerationProperties(sourceXML, targetFolder);
+
+        params.setSchemaToPackage(schemaToPackage);
+
+        if (!schemaPattern.equals(EMPTY_VALUE)) {
+            params.setSchemaPattern(schemaPattern);
+        }
+
+        if (!packageName.equals(EMPTY_VALUE)) {
+            params.setPackageName(packageName);
+        }
+
+        Logger.getLogger(LiquiBaseToQueryDslMojo.class.getName()).log(Level.INFO, sourceXML);
+        Logger.getLogger(LiquiBaseToQueryDslMojo.class.getName()).log(Level.INFO,
+                new ClassLoaderResourceAccessor().toString());
+
         File xmlFile = new File(sourceXML);
         if (buildContext.hasDelta(xmlFile)) {
-            Main.generate(sourceXML, packageName, targetFolder, externalXMLs);
+            // LQMG.generate(params, new ClassLoaderResourceAccessor());
+            LQMG.generate(params, new CustomClassLoaderResourceAccessor(project, getClass().getClassLoader()));
             return;
         }
         // generate all event.
-        Main.generate(sourceXML, packageName, targetFolder, externalXMLs);
+        LQMG.generate(params, new CustomClassLoaderResourceAccessor(project, getClass().getClassLoader()));
+        // LQMG.generate(params, new ClassLoaderResourceAccessor());
+
     }
 }
