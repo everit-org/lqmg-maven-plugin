@@ -21,44 +21,54 @@ package org.everit.db.lb2qd.plugin;
  * MA 02110-1301  USA
  */
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
+
+import liquibase.resource.ResourceAccessor;
 
 import org.apache.maven.model.Resource;
 import org.apache.maven.project.MavenProject;
 
-import liquibase.resource.FileSystemResourceAccessor;
-import liquibase.resource.ResourceAccessor;
-
+/**
+ * An implementation of {@link ResourceAccessor}.
+ */
 public class CustomClassLoaderResourceAccessor implements ResourceAccessor {
 
+    /**
+     * The {@link MavenProject} which using the CustomClassLoaderResourceAccessor. Required to find resources.
+     */
     private MavenProject project;
 
-    private FileSystemResourceAccessor fileSystemResourceAccessor;
-
+    /**
+     * The {@link ClassLoader} instance.
+     */
     private ClassLoader classLoader;
 
+    /**
+     * The simple constructor.
+     * 
+     * @param project
+     *            the MavenProject which call the CustomClassLoaderResourceAccessor.
+     * @param classLoader
+     *            the {@link ClassLoader}.
+     */
     public CustomClassLoaderResourceAccessor(final MavenProject project, final ClassLoader classLoader) {
         this.project = project;
-        fileSystemResourceAccessor = new FileSystemResourceAccessor();
         this.classLoader = classLoader;
     }
 
     @Override
     public InputStream getResourceAsStream(final String file) throws IOException {
         InputStream resourceAsStream = getClass().getClassLoader().getResourceAsStream(file);
+
         if (resourceAsStream == null) {
+            @SuppressWarnings("unchecked")
             List<Resource> resources = project.getResources();
             for (Resource resource : resources) {
-                if (file.startsWith("/") || file.startsWith("\\")) {
-                    resourceAsStream = fileSystemResourceAccessor.getResourceAsStream(resource.getDirectory() + file);
-                } else {
-                    resourceAsStream = fileSystemResourceAccessor.getResourceAsStream(resource.getDirectory() + "/"
-                            + file);
-                }
+                File resourceDir = new File(resource.getDirectory());
+                File liquibaseXML = new File(resourceDir, file);
+                resourceAsStream = new FileInputStream(liquibaseXML);
                 if (resourceAsStream != null) {
                     break;
                 }
@@ -69,20 +79,8 @@ public class CustomClassLoaderResourceAccessor implements ResourceAccessor {
 
     @Override
     public Enumeration<URL> getResources(final String packageName) throws IOException {
+        // TODO is correct or want to see the project resources folders?
         Enumeration<URL> resources = getClass().getClassLoader().getResources(packageName);
-        if (resources == null) {
-            List<Resource> projectResources = project.getResources();
-            for (Resource resource : projectResources) {
-                if (packageName.startsWith("/") || packageName.startsWith("\\")) {
-                    resources = fileSystemResourceAccessor.getResources(resource.getDirectory() + packageName);
-                } else {
-                    resources = fileSystemResourceAccessor.getResources(resource.getDirectory() + "/" + packageName);
-                }
-                if (resources != null) {
-                    break;
-                }
-            }
-        }
         return resources;
     }
 
