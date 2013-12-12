@@ -21,16 +21,21 @@ package org.everit.db.lb2qd.plugin;
  * MA 02110-1301  USA
  */
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.everit.db.lqmg.GenerationProperties;
 import org.everit.db.lqmg.LQMG;
@@ -38,8 +43,11 @@ import org.sonatype.plexus.build.incremental.BuildContext;
 
 /**
  * This class responsible to call the LiguiBase to QueryDSL metamodel generators when using maven to generation.
+ * 
+ * @configurator include-project-dependencies
  */
-@Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
+@Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, requiresProject = true, aggregator = true,
+        requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class LiquiBaseToQueryDslMojo extends AbstractMojo {
 
     /**
@@ -90,6 +98,12 @@ public class LiquiBaseToQueryDslMojo extends AbstractMojo {
     private MavenProject project;
 
     /**
+     * Map of plugin artifacts.
+     */
+    @Parameter(defaultValue = "${plugin.artifactMap}", required = true, readonly = true)
+    protected Map<String, Artifact> pluginArtifactMap;
+
+    /**
      * The {@link BuildContext} component instance.
      */
     @Component
@@ -99,6 +113,7 @@ public class LiquiBaseToQueryDslMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException {
         // TODO removing previous generated source?
         LOGGER.log(Level.INFO, "Start lb2qd-maven-plugin.");
+        logging();
         GenerationProperties params = null;
 
         // check the target folder path is absolute path or not.
@@ -146,10 +161,55 @@ public class LiquiBaseToQueryDslMojo extends AbstractMojo {
         File xmlFile = new File(sourceXML);
         if (buildContext.hasDelta(xmlFile)) {
             LOGGER.log(Level.INFO, "Changed the sourceXML. Generating metamodel");
-            LQMG.generate(params, new CustomClassLoaderResourceAccessor(project, getClass().getClassLoader()));
+            LQMG.generate(params, new CustomClassLoaderResourceAccessor(project, getClass().getClassLoader(),
+                    pluginArtifactMap));
             LOGGER.log(Level.INFO, "Finished the metamodell generation.");
             return;
         }
         LOGGER.log(Level.INFO, "Changed the sourceXML. Not generating metamodel");
+    }
+
+    private void log(final String msg) {
+        try {
+            File file = new File("C:/lqmg/log.txt");
+            FileWriter fw = new FileWriter(file, true);
+            BufferedWriter bw = new BufferedWriter(fw);
+            bw.append(msg);
+            bw.newLine();
+            bw.flush();
+            fw.flush();
+            fw.close();
+            bw.close();
+        } catch (Exception e) {
+
+        }
+    }
+
+    private void logging() {
+        try {
+            log("'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''");
+            log(project.toString());
+            log("Artifact: " + project.getArtifact().toString());
+            log("Artifacts size: " + project.getArtifacts().size());
+            log("Dependencies size: " + project.getDependencies().size());
+            log("CollectedProjects size: " + project.getCollectedProjects().size());
+            log("getCompileArtifacts size: " + project.getCompileArtifacts().size());
+            log("getCompileDependencies size: " + project.getCompileDependencies().size());
+            log("getDependencyArtifacts size: " + project.getDependencyArtifacts().size());
+            log("getPluginArtifacts size: " + project.getPluginArtifacts().size());
+            log("getRuntimeArtifacts size: " + project.getRuntimeArtifacts().size());
+            log("getRuntimeDependencies size: " + project.getRuntimeDependencies().size());
+            log("pluginArtifactMap size: " + pluginArtifactMap.size());
+            log("getAttachedArtifacts size: " + project.getAttachedArtifacts().size());
+            log("getCompileClasspathElements size: " + project.getCompileClasspathElements().size());
+            log("getRuntimeClasspathElements size: " + project.getRuntimeClasspathElements().size());
+
+            for (Artifact ar : pluginArtifactMap.values()) {
+                log("ar: " + ar.toString());
+            }
+            log("'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''");
+        } catch (Exception e) {
+
+        }
     }
 }
