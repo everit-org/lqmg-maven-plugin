@@ -21,14 +21,22 @@ package org.everit.db.lb2qd.plugin;
  * MA 02110-1301  USA
  */
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import liquibase.resource.ClassLoaderResourceAccessor;
+
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
@@ -44,9 +52,8 @@ import org.sonatype.plexus.build.incremental.BuildContext;
 /**
  * This class responsible to call the LiguiBase to QueryDSL metamodel generators when using maven to generation.
  * 
- * @configurator include-project-dependencies
  */
-@Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, requiresProject = true, aggregator = true,
+@Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, requiresProject = true,
         requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class LiquiBaseToQueryDslMojo extends AbstractMojo {
 
@@ -55,10 +62,10 @@ public class LiquiBaseToQueryDslMojo extends AbstractMojo {
      */
     private static final Logger LOGGER = Logger.getLogger(LQMG.class.getName());
 
-    /**
-     * The default empty value to schemaPattern.
-     */
-    private static final String EMPTY_VALUE = "DEFAULT_EMPTY_VALUE_LB2QD_MAVEN_PLUGIN_TO_SCHEMA_PATTERN";
+    // /**
+    // * The default empty value to schemaPattern.
+    // */
+    // private static final String EMPTY_VALUE = "DEFAULT_EMPTY_VALUE_LB2QD_MAVEN_PLUGIN_TO_SCHEMA_PATTERN";
 
     /**
      * Path to the liquibase changelog file.
@@ -67,7 +74,7 @@ public class LiquiBaseToQueryDslMojo extends AbstractMojo {
     private String sourceXML;
 
     /**
-     * he java package of the generated QueryDSL metamodel classes. Default-value: empty, that means that the package
+     * The java package of the generated QueryDSL metamodel classes. Default-value: empty, that means that the package
      * will be either empty or derived from the schema.
      */
     @Parameter(required = false, property = "lb2qd.packageName", defaultValue = "")
@@ -88,7 +95,7 @@ public class LiquiBaseToQueryDslMojo extends AbstractMojo {
     /**
      * A schema name pattern; must match the schema name as it is stored in the database.
      */
-    @Parameter(required = false, property = "lb2qb.schemaPattern", defaultValue = EMPTY_VALUE)
+    @Parameter(required = false, property = "lb2qb.schemaPattern", defaultValue = "")
     private String schemaPattern;
 
     /**
@@ -109,11 +116,34 @@ public class LiquiBaseToQueryDslMojo extends AbstractMojo {
     @Component
     protected BuildContext buildContext;
 
+    private ClassLoader createClassLoader() throws MojoExecutionException {
+        LOGGER.log(Level.INFO, "Start create classLoader.");
+        Set<URL> urls = new HashSet<URL>();
+        @SuppressWarnings("unchecked")
+        List<Artifact> artifacts = new ArrayList<Artifact>(project.getArtifacts());
+        artifacts.addAll(pluginArtifactMap.values());
+        try {
+            for (Artifact artifact : artifacts) {
+
+                urls.add(artifact.getFile().toURI().toURL());
+            }
+            @SuppressWarnings("unchecked")
+            List<Resource> resources = project.getResources();
+            for (Resource resource : resources) {
+                urls.add(new File(resource.getDirectory()).toURI().toURL());
+            }
+        } catch (MalformedURLException e) {
+            throw new MojoExecutionException("URL construction error.", e);
+        }
+        URLClassLoader classLoader = new URLClassLoader(urls.toArray(new URL[0]), getClass().getClassLoader());
+        LOGGER.log(Level.INFO, "Finished create classLoader.");
+        return classLoader;
+    }
+
     @Override
     public void execute() throws MojoExecutionException {
         // TODO removing previous generated source?
         LOGGER.log(Level.INFO, "Start lb2qd-maven-plugin.");
-        logging();
         GenerationProperties params = null;
 
         // check the target folder path is absolute path or not.
@@ -147,7 +177,7 @@ public class LiquiBaseToQueryDslMojo extends AbstractMojo {
 
         LOGGER.log(Level.INFO, "Set schemaPattern value. Value: " + schemaPattern);
         // set schemaPattern if not a default value.
-        if (!schemaPattern.equals(EMPTY_VALUE)) {
+        if (schemaPattern != null) {
             params.setSchemaPattern(schemaPattern);
         }
 
@@ -161,55 +191,11 @@ public class LiquiBaseToQueryDslMojo extends AbstractMojo {
         File xmlFile = new File(sourceXML);
         if (buildContext.hasDelta(xmlFile)) {
             LOGGER.log(Level.INFO, "Changed the sourceXML. Generating metamodel");
-            LQMG.generate(params, new CustomClassLoaderResourceAccessor(project, getClass().getClassLoader(),
-                    pluginArtifactMap));
+            LQMG.generate(params, new ClassLoaderResourceAccessor(createClassLoader()));
             LOGGER.log(Level.INFO, "Finished the metamodell generation.");
             return;
         }
         LOGGER.log(Level.INFO, "Changed the sourceXML. Not generating metamodel");
     }
 
-    private void log(final String msg) {
-        try {
-            File file = new File("C:/lqmg/log.txt");
-            FileWriter fw = new FileWriter(file, true);
-            BufferedWriter bw = new BufferedWriter(fw);
-            bw.append(msg);
-            bw.newLine();
-            bw.flush();
-            fw.flush();
-            fw.close();
-            bw.close();
-        } catch (Exception e) {
-
-        }
-    }
-
-    private void logging() {
-        try {
-            log("'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''");
-            log(project.toString());
-            log("Artifact: " + project.getArtifact().toString());
-            log("Artifacts size: " + project.getArtifacts().size());
-            log("Dependencies size: " + project.getDependencies().size());
-            log("CollectedProjects size: " + project.getCollectedProjects().size());
-            log("getCompileArtifacts size: " + project.getCompileArtifacts().size());
-            log("getCompileDependencies size: " + project.getCompileDependencies().size());
-            log("getDependencyArtifacts size: " + project.getDependencyArtifacts().size());
-            log("getPluginArtifacts size: " + project.getPluginArtifacts().size());
-            log("getRuntimeArtifacts size: " + project.getRuntimeArtifacts().size());
-            log("getRuntimeDependencies size: " + project.getRuntimeDependencies().size());
-            log("pluginArtifactMap size: " + pluginArtifactMap.size());
-            log("getAttachedArtifacts size: " + project.getAttachedArtifacts().size());
-            log("getCompileClasspathElements size: " + project.getCompileClasspathElements().size());
-            log("getRuntimeClasspathElements size: " + project.getRuntimeClasspathElements().size());
-
-            for (Artifact ar : pluginArtifactMap.values()) {
-                log("ar: " + ar.toString());
-            }
-            log("'''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''");
-        } catch (Exception e) {
-
-        }
-    }
 }

@@ -103,18 +103,6 @@
                     <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.codehaus.plexus</groupId>
-                <artifactId>plexus-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>generate-soruces</phase>
-                        <goals>
-                            <goal>descriptor</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
 
@@ -124,31 +112,31 @@
             <artifactId>plexus-build-api</artifactId>
             <version>0.0.7</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-plugin-api</artifactId>
-            <version>2.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.maven.plugin-tools</groupId>
-            <artifactId>maven-plugin-annotations</artifactId>
-            <version>3.2</version>
-        </dependency>
+
+        <!-- Model generator -->
         <dependency>
             <groupId>org.everit</groupId>
             <artifactId>org.everit.db.lqmg</artifactId>
             <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- Maven -->
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+            <version>3.1.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-project</artifactId>
             <version>2.2.1</version>
         </dependency>
-
+        
+        <!-- Maven annotation -->
         <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-artifact</artifactId>
-            <version>2.2.1</version>
+            <groupId>org.apache.maven.plugin-tools</groupId>
+            <artifactId>maven-plugin-annotations</artifactId>
+            <version>3.2</version>
         </dependency>
     </dependencies>
 </project>

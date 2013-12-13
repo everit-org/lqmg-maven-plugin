@@ -21,10 +21,8 @@ package org.everit.db.lb2qd.plugin;
  * MA 02110-1301  USA
  */
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -36,20 +34,26 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import liquibase.resource.ClassLoaderResourceAccessor;
 import liquibase.resource.ResourceAccessor;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
-import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Resource;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
+import org.everit.db.lqmg.LQMG;
 
 /**
  * An implementation of {@link ResourceAccessor}.
  */
 public class CustomClassLoaderResourceAccessor implements ResourceAccessor {
+
+    /**
+     * The {@link Logger} instance for logging.
+     */
+    private static final Logger LOGGER = Logger.getLogger(LQMG.class.getName());
 
     /**
      * The {@link MavenProject} which using the CustomClassLoaderResourceAccessor. Required to find resources.
@@ -68,88 +72,64 @@ public class CustomClassLoaderResourceAccessor implements ResourceAccessor {
      *            the MavenProject which call the CustomClassLoaderResourceAccessor.
      * @param classLoader
      *            the {@link ClassLoader}.
+     * @throws MojoExecutionException
+     *             if URL creation is failed.
      */
-    public CustomClassLoaderResourceAccessor(final MavenProject project, final ClassLoader classLoader,
-            final Map<String, Artifact> pluginArtifactMap) {
+    public CustomClassLoaderResourceAccessor(final MavenProject project, final Map<String, Artifact> pluginArtifactMap)
+            throws MojoExecutionException {
+        LOGGER.log(Level.INFO, "Start create " + CustomClassLoaderResourceAccessor.class.getSimpleName()
+                + " (constructor).");
         this.project = project;
-        try {
-            Set<URL> urls = new HashSet<URL>();
-            List<String> compileClasspathElements = project.getCompileClasspathElements();
-            List<String> runtimeClasspathElements = project.getRuntimeClasspathElements();
-            List<Dependency> dependencies = project.getDependencies();
-            Map<String, Artifact> artifactMap = project.getArtifactMap();
-            List<Artifact> availableArtifacts = new ArrayList<Artifact>(project.getArtifacts());
-            log("avsiz: " + artifactMap.size());
-            for (Artifact artifact : availableArtifacts) {
+        LOGGER.log(Level.INFO, "Start create classLoader.");
+        Set<URL> urls = new HashSet<URL>();
+        @SuppressWarnings("unchecked")
+        List<Artifact> artifacts = new ArrayList<Artifact>(project.getArtifacts());
+        artifacts.addAll(pluginArtifactMap.values());
+
+        for (Artifact artifact : artifacts) {
+            try {
                 urls.add(artifact.getFile().toURI().toURL());
+            } catch (MalformedURLException e) {
+                throw new MojoExecutionException("URL construction error.", e);
             }
-            for (Artifact artifact : pluginArtifactMap.values()) {
-                urls.add(artifact.getFile().toURI().toURL());
-            }
-            URLClassLoader urlClassLoader = new URLClassLoader(urls.toArray(new URL[0]), classLoader);
-            log("OWWWWWWWWWWWWWWWWWWWWWWWWW");
-            log(new ClassLoaderResourceAccessor(urlClassLoader).toString());
-            log("OWWWWWWWWWWWWWWWWWWWWWWWWW");
-            this.classLoader = urlClassLoader;
-        } catch (DependencyResolutionRequiredException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e.getMessage(), e);
         }
-        // this.classLoader = classLoader;
+        classLoader = new URLClassLoader(urls.toArray(new URL[0]), classLoader);
+        LOGGER.log(Level.INFO, "Finished create classLoader.");
+        LOGGER.log(Level.INFO, "Finished create " + CustomClassLoaderResourceAccessor.class.getSimpleName()
+                + " (constructor).");
     }
 
     @Override
     public InputStream getResourceAsStream(final String file) throws IOException {
+        LOGGER.log(Level.INFO, "Find file in classLoader.");
         InputStream resourceAsStream = classLoader.getResourceAsStream(file);
-
-        log("++++++++++++++++++++++++");
-        log(new ClassLoaderResourceAccessor(classLoader).toString());
-        log("++++++++++++++++++++++++");
         if (resourceAsStream == null) {
-            log("RESOURCE is NULL: ");
+            LOGGER.log(Level.INFO, "Unable find file in classLoader.");
             @SuppressWarnings("unchecked")
             List<Resource> resources = project.getResources();
+            LOGGER.log(Level.INFO, "Find file in project resources.");
             for (Resource resource : resources) {
-                log("RESOURCE is search: ");
                 File resourceDir = new File(resource.getDirectory());
                 File liquibaseXML = new File(resourceDir, file);
                 resourceAsStream = new FileInputStream(liquibaseXML);
-                log(liquibaseXML.getAbsolutePath());
                 if (resourceAsStream != null) {
-                    log("RESOURCE is find: ");
+                    LOGGER.log(Level.INFO, "Found file in project resources.");
                     break;
                 }
             }
+        } else {
+            LOGGER.log(Level.INFO, "Found file in classLoader.");
         }
-        log("RESOURCE: " + resourceAsStream.toString());
         return resourceAsStream;
     }
 
     @Override
     public Enumeration<URL> getResources(final String packageName) throws IOException {
         // TODO is correct or want to see the project resources folders?
+        LOGGER.log(Level.INFO, "Find packageName in classLoader.");
         Enumeration<URL> resources = classLoader.getResources(packageName);
-        log("-------------------");
-        log(new ClassLoaderResourceAccessor(classLoader).toString());
-        log("--------------------");
+        LOGGER.log(Level.INFO, "Found packageName in classLoader.");
         return resources;
-    }
-
-    private void log(final String msg) {
-        try {
-            File file = new File("C:/lqmg/log.txt");
-            FileWriter fw = new FileWriter(file, true);
-            BufferedWriter bw = new BufferedWriter(fw);
-            bw.append(msg);
-            bw.newLine();
-            bw.flush();
-            fw.flush();
-            fw.close();
-            bw.close();
-        } catch (Exception e) {
-
-        }
     }
 
     @Override
