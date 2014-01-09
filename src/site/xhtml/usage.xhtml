@@ -27,28 +27,26 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <body>
-	<h1>Usage</h1>
-	<h2>Dependency collection</h2>
-	<p>In basic no required dependency collection, however if the LiquiBase XML file contains &lt;include file="${relativePath}" /&gt; must be to wirte dependency where find the file. Not other required dependecy collection the lb2qd-maven-plugin.</p>
-	<p><b>Note:</b> the plugin not required the QueryDSL code generation dependecy, but if generated the models the project will be missed the dependecy. The dependency which demand:</p>
-	<div class="source">
-		<pre>
-&lt;dependency&gt;
-    &lt;groupId&gt;com.mysema.querydsl&lt;/groupId&gt;
-    &lt;artifactId&gt;querydsl-sql-codegen&lt;/artifactId&gt;
-    &lt;version&gt;3.2.4&lt;/version&gt;
- &lt;/dependency&gt;
-		</pre>
-	</div>
-	
-	<h2>Plugin execution</h2>
+  <h1>Usage</h1>
 
-	<p>The plugin requires some mandatory data that can be run. Futhermore must be set the plguin goals.</p>
-	<p><b>Important:</b> the LiquiBase XML file name must be unique. If not unique the file name the plguin find bad xml file.</p>
-	
-	<h3>Minimal configuration</h3>
-	<div class="source">
-		<pre>
+  <h2>Foreword</h2>
+
+  <p>
+    The plugin uses the <a href="https://github.com/db-lqmg">Everit LQMG</a> library. To know how exactly the plugin
+    works, read the documentation of that library.
+  </p>
+
+  <h2>Plugin execution</h2>
+
+  <p>Although an m2e lifec</p>
+  <p>
+    <b>Important:</b> the LiquiBase XML file name must be unique. If not unique the file name the plguin find bad xml
+    file.
+  </p>
+
+  <h3>Minimal configuration</h3>
+  <div class="source">
+    <pre>
 &lt;plugin&gt;
     &lt;groupId&gt;org.everit.db&lt;/groupId&gt;
     &lt;artifactId&gt;lb2qd-maven-plugin&lt;/artifactId&gt;
@@ -66,12 +64,17 @@
     &lt;/executions&gt;
 &lt;/plugin&gt;
 			</pre>
-	</div>
-	<p>This configuration is generate metamodel to src/main/java/{schemaName}/ and src/main/java/public_/ the LiquiBase tables.</p>
-	<p>{schemaName} - defined the LiquiBase XML. See more information the LiquiBase XML file in the <a class="externalLink" href="http://www.liquibase.org/">LiquiBase</a> page or in below.</p>
-	
-	<p>META-INF/liquibase/changeLog.xml</p>
-		<div class="source"><pre>
+  </div>
+  <p>This configuration is generate metamodel to src/main/java/{schemaName}/ and src/main/java/public_/ the
+    LiquiBase tables.</p>
+  <p>
+    {schemaName} - defined the LiquiBase XML. See more information the LiquiBase XML file in the <a class="externalLink"
+      href="http://www.liquibase.org/">LiquiBase</a> page or in below.
+  </p>
+
+  <p>META-INF/liquibase/changeLog.xml</p>
+  <div class="source">
+    <pre>
 &lt;?xml version="1.0" encoding="UTF-8"?&gt;
 
 &lt;databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
@@ -113,10 +116,10 @@
     &lt;/changeSet&gt;
 
 &lt;/databaseChangeLog&gt;</pre>
-</div>
-	<h3>Full configuration</h3>
-	<div class="source">
-		<pre>
+  </div>
+  <h3>Full configuration</h3>
+  <div class="source">
+    <pre>
 &lt;plugin&gt;
     &lt;groupId&gt;org.everit.db&lt;/groupId&gt;
     &lt;artifactId&gt;lb2qd-maven-plugin&lt;/artifactId&gt;
@@ -138,12 +141,13 @@
     &lt;/executions&gt;
 &lt;/plugin&gt;
 			</pre>
-	</div>
-	<p>This configuration means generate only org.everit.car schema name table(s) to the src/main/java/{packageName} where the schema name is not package. So result is src/main/java/com/example/QCar.java</p>
+  </div>
+  <p>This configuration means generate only org.everit.car schema name table(s) to the src/main/java/{packageName}
+    where the schema name is not package. So result is src/main/java/com/example/QCar.java</p>
 
-	<h3>Typical configuration</h3>
-	<div class="source">
-		<pre>
+  <h3>Typical configuration</h3>
+  <div class="source">
+    <pre>
 &lt;plugin&gt;
     &lt;groupId&gt;org.everit.db&lt;/groupId&gt;
     &lt;artifactId&gt;lb2qd-maven-plugin&lt;/artifactId&gt;
@@ -163,36 +167,47 @@
     &lt;/executions&gt;
 &lt;/plugin&gt;
 			</pre>
-	</div>
-	<p>This configuration means generate only org.everit.car schema name table(s) to the src/main/java/{shcemaName}/ where the schema name is package. So result is src/main/java/org/everit/car/QCar.java</p>
-	
-	<h3>Configurations</h3>
-	<p>A plugin configuration says to place of source XML, generated target folder, and the package name. Furthermore says plugin goals. </p>
-	<table>
-		<thead>
-			<tr>
-				<th>Name</th>
-				<th>Description</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td><p>goal</p></td>
-				<td><p>Says the execute goal. See more information <a href="plugin-info.html">Goals</a></p></td>
-			</tr>
-			<tr>
-				<td><p>configuration</p></td>
-				<td><p>Contains the plugin configurations (optional and required settings).</p>
-					 <ul>
-						 <li><a href="plugin-info.html#sourceXML">sourceXML</a><p>The LiquiBase XML file path (relative or absolute) from which generate the QueryDSL meta model.</p></li> 
-						 <li><a href="plugin-info.html#targetFolder">targetFolder</a><p>The base target directory of the generated meta-models be placed.</p></li>
-						 <li><a href="plugin-info.html#packageName">packageName</a><p>The redefined the definitive target directory. If using this configuration element using the schemaToPackage configuration element and set false.</p></li>
-						 <li><a href="plugin-info.html#schemaToPackage">schemaToPackage</a><p>If not want to the definitve target directory be targetFolder/{schemaName}. If only this optional configuration element the result is generete metamodel to only targetFolder.</p></li>
-						 <li><a href="plugin-info.html#schemaPattern">schemaPattern</a><p>Specified which shema generated only. Typical using because the default tables generated if not specified the shcemaPattern.</p></li>
-					 </ul>
-				</td>
-			</tr>
-		</tbody>
-	</table>
+  </div>
+  <p>This configuration means generate only org.everit.car schema name table(s) to the src/main/java/{shcemaName}/
+    where the schema name is package. So result is src/main/java/org/everit/car/QCar.java</p>
+
+  <h3>Configurations</h3>
+  <p>A plugin configuration says to place of source XML, generated target folder, and the package name. Furthermore
+    says plugin goals.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><p>goal</p></td>
+        <td><p>
+            Says the execute goal. See more information <a href="plugin-info.html">Goals</a>
+          </p></td>
+      </tr>
+      <tr>
+        <td><p>configuration</p></td>
+        <td><p>Contains the plugin configurations (optional and required settings).</p>
+          <ul>
+            <li><a href="plugin-info.html#sourceXML">sourceXML</a>
+            <p>The LiquiBase XML file path (relative or absolute) from which generate the QueryDSL meta model.</p></li>
+            <li><a href="plugin-info.html#targetFolder">targetFolder</a>
+            <p>The base target directory of the generated meta-models be placed.</p></li>
+            <li><a href="plugin-info.html#packageName">packageName</a>
+            <p>The redefined the definitive target directory. If using this configuration element using the
+                schemaToPackage configuration element and set false.</p></li>
+            <li><a href="plugin-info.html#schemaToPackage">schemaToPackage</a>
+            <p>If not want to the definitve target directory be targetFolder/{schemaName}. If only this optional
+                configuration element the result is generete metamodel to only targetFolder.</p></li>
+            <li><a href="plugin-info.html#schemaPattern">schemaPattern</a>
+            <p>Specified which shema generated only. Typical using because the default tables generated if not
+                specified the shcemaPattern.</p></li>
+          </ul></td>
+      </tr>
+    </tbody>
+  </table>
 </body>
 </html>
