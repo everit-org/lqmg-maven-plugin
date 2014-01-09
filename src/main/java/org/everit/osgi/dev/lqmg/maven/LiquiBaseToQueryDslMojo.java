@@ -140,13 +140,15 @@ public class LiquiBaseToQueryDslMojo extends AbstractMojo {
 
 	@Override
 	public void execute() throws MojoExecutionException {
-		// TODO removing previous generated source?
 		getLog().info("Start lb2qd-maven-plugin.");
 		GenerationProperties params = null;
 
+		File targetFolderFile = new File(targetFolder);
 		String generationFolder = new File(project.getBasedir()
 				.getAbsolutePath(), targetFolder).getAbsolutePath();
-
+		if (targetFolderFile.isAbsolute()) {
+			generationFolder = new File(targetFolder).getAbsolutePath();
+		}
 		getLog().info("Generation target folder: " + generationFolder);
 		String[] projectArtifactsPath = getProjectArtifactsPath();
 		params = new GenerationProperties(schemaExpression,
@@ -176,7 +178,8 @@ public class LiquiBaseToQueryDslMojo extends AbstractMojo {
 			LQMG.generate(params);
 			getLog().info("Finished the metamodell generation.");
 		} else {
-			getLog().info("Changelog XML was not changed. Not generating metamodel");
+			getLog().info(
+					"Changelog XML was not changed. Not generating metamodel");
 		}
 	}
 
