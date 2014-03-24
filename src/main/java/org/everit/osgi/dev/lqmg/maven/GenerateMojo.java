@@ -27,7 +27,7 @@ import java.util.Set;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.Execute;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -35,56 +35,32 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.everit.osgi.dev.lqmg.GenerationProperties;
 import org.everit.osgi.dev.lqmg.LQMG;
-import org.sonatype.plexus.build.incremental.BuildContext;
 
 /**
  * Generates QueryDSL Metadata classes from Liquibase schema files.
  */
-@Mojo(name = "generate", defaultPhase = LifecyclePhase.GENERATE_SOURCES, requiresProject = true,
-        requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
+@Mojo(name = "generate", requiresProject = true, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
+@Execute(phase = LifecyclePhase.PACKAGE)
 public class GenerateMojo extends AbstractMojo {
 
     /**
-     * The expression of the schema that should be the starting point of the generation. Expressions references to the
-     * name of a "liquibase.schema" capability of a bundle. E.g. If the bundle has
-     * "Provide-Capability: liquibase.schema;name=mySchema", the value of this property should be simply "myApp". It is
-     * possible to append filter to the expression. E.g.: mySchema;filter:=("someAttribute=someValue").
+     * The path of the main configuration XML. Optional. If defined, the naming rules in this XML have higher priority
+     * than the ones specified in the bundles.
      */
-    @Parameter(required = true, property = "lqmg.schemaExpression")
-    private String schemaExpression;
-
-    /**
-     * The java package of the generated QueryDSL metamodel classes. Default-value: empty, that means that the package
-     * will be either empty or derived from the schema.
-     */
-    @Parameter(required = false, property = "lqmg.packageName", defaultValue = "")
-    private String packageName;
+    @Parameter(required = false, property = "lqmg.configFile")
+    private String configFile;
 
     /**
      * The folder where source will be generated to.
      */
-    @Parameter(required = true, property = "lqmg.targetFolder", defaultValue = "src/main/generated/java")
-    private String targetFolder;
+    @Parameter(required = true, property = "lqmg.outputFolder", defaultValue = "src/main/generated/java")
+    private String outputFolder;
 
     /**
-     * A flag indicating if the package name of the Liquibase Metadata classes should contain the name of the database
-     * schema.
+     * Comma separated list of packages that should be generated. If not defined, all packages will be generated.
      */
-    @Parameter(required = false, property = "lqmg.schemaToPackage", defaultValue = "true")
-    private boolean schemaToPackage;
-
-    /**
-     * Metadata classes will be generated only from that schema that matches exactly with the value of this property. In
-     * case it is not defined, all schema will used.
-     */
-    @Parameter(required = false, property = "lqmg.schemaPattern", defaultValue = "")
-    private String schemaPattern;
-
-    /**
-     * The {@link MavenProject} which call the lb2qb-maven-plugin.
-     */
-    @Parameter(readonly = true, required = true, defaultValue = "${project}")
-    private MavenProject project;
+    @Parameter(required = false, property = "lqmg.packages")
+    private String packages;
 
     /**
      * Map of plugin artifacts.
@@ -93,10 +69,44 @@ public class GenerateMojo extends AbstractMojo {
     protected Map<String, Artifact> pluginArtifactMap;
 
     /**
-     * The {@link BuildContext} component instance.
+     * The {@link MavenProject} which call the lqmg-maven-plugin.
      */
-    @Component
-    protected BuildContext buildContext;
+    @Parameter(property = "executedProject")
+    private MavenProject project;
+
+    /**
+     * The expression of the schema that should be the starting point of the generation. Expressions references to the
+     * name of a "liquibase.schema" capability of a bundle. E.g. If the bundle has
+     * "Provide-Capability: liquibase.schema;name=mySchema", the value of this property should be simply "myApp". It is
+     * possible to append filter to the expression. E.g.: mySchema;filter:=("someAttribute=someValue").
+     */
+    @Parameter(required = true, property = "lqmg.schema")
+    private String schema;
+
+    @Override
+    public void execute() throws MojoExecutionException {
+        getLog().info("Start lqmg-maven-plugin.");
+        GenerationProperties params = null;
+
+        File targetFolderFile = new File(outputFolder);
+        String generationFolder = new File(project.getBasedir()
+                .getAbsolutePath(), outputFolder).getAbsolutePath();
+        if (targetFolderFile.isAbsolute()) {
+            generationFolder = new File(outputFolder).getAbsolutePath();
+        }
+        getLog().info("Generation target folder: " + generationFolder);
+        String[] projectArtifactsPath = getProjectArtifactsPath();
+        params = new GenerationProperties(schema,
+                projectArtifactsPath, generationFolder);
+
+        params.setConfigurationPath(configFile);
+        if (packages != null && !packages.trim().equals("")) {
+            params.setPackages(packages.split(","));
+        }
+
+        LQMG.generate(params);
+        getLog().info("Finished the metamodell generation at path " + generationFolder);
+    }
 
     private String[] getProjectArtifactsPath() throws MojoExecutionException {
         Set<String> artifactsPath = new HashSet<String>();
@@ -127,51 +137,6 @@ public class GenerateMojo extends AbstractMojo {
         }
 
         return artifactsPath.toArray(new String[artifactsPath.size()]);
-    }
-
-    @Override
-    public void execute() throws MojoExecutionException {
-        getLog().info("Start lb2qd-maven-plugin.");
-        GenerationProperties params = null;
-
-        File targetFolderFile = new File(targetFolder);
-        String generationFolder = new File(project.getBasedir()
-                .getAbsolutePath(), targetFolder).getAbsolutePath();
-        if (targetFolderFile.isAbsolute()) {
-            generationFolder = new File(targetFolder).getAbsolutePath();
-        }
-        getLog().info("Generation target folder: " + generationFolder);
-        String[] projectArtifactsPath = getProjectArtifactsPath();
-        params = new GenerationProperties(schemaExpression,
-                projectArtifactsPath, generationFolder);
-
-        getLog().info("Set schamaToPackage value. Value: " + schemaToPackage);
-        // set the schemaToPackage
-        params.setSchemaToPackage(schemaToPackage);
-
-        getLog().info("Set schemaPattern value. Value: " + schemaPattern);
-        // set schemaPattern if not a default value.
-        if (schemaPattern != null) {
-            params.setSchemaPattern(schemaPattern);
-        }
-
-        getLog().info("Set packageName value. Value: " + packageName);
-        // set packagename if not a default value.
-        if (packageName != null) {
-            params.setPackageName(packageName);
-        }
-
-        // only generate if the sourceXML is changed. When building mvn clean
-        // install this condition is true.
-        File xmlFile = new File(schemaExpression);
-        if (buildContext.hasDelta(xmlFile)) {
-            getLog().info("Changed the sourceXML. Generating metamodel");
-            LQMG.generate(params);
-            getLog().info("Finished the metamodell generation.");
-        } else {
-            getLog().info(
-                    "Changelog XML was not changed. Not generating metamodel");
-        }
     }
 
 }
