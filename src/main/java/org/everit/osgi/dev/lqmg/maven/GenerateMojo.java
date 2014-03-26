@@ -18,17 +18,13 @@ package org.everit.osgi.dev.lqmg.maven;
 
 import java.io.File;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Execute;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
@@ -40,7 +36,6 @@ import org.everit.osgi.dev.lqmg.LQMG;
  * Generates QueryDSL Metadata classes from Liquibase schema files.
  */
 @Mojo(name = "generate", requiresProject = true, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
-@Execute(phase = LifecyclePhase.PACKAGE)
 public class GenerateMojo extends AbstractMojo {
 
     /**
@@ -112,31 +107,49 @@ public class GenerateMojo extends AbstractMojo {
         Set<String> artifactsPath = new HashSet<String>();
 
         @SuppressWarnings("unchecked")
-        List<Artifact> artifacts = new ArrayList<Artifact>(
-                project.getArtifacts());
-        artifacts.add(project.getArtifact());
+        Set<Artifact> dependencyArtifacts = project.getArtifacts();
+        for (Artifact artifact : dependencyArtifacts) {
+            String artifactFileURI = resolveArtifactFileURI(artifact);
+            if (artifactFileURI != null) {
+                getLog().info("Adding artifact: " + artifactFileURI);
+                artifactsPath.add(artifactFileURI);
+            }
+        }
 
-        for (Artifact artifact : artifacts) {
-            File artifactFile = artifact.getFile();
-            if (artifactFile != null) {
-                getLog().info("Adding artifact: " + artifact);
+        Artifact projectArtifact = project.getArtifact();
+        String projectArtifactURI = resolveArtifactFileURI(projectArtifact);
+        if (projectArtifactURI != null) {
+            getLog().info("Adding artifact (current project): " + projectArtifactURI);
+            artifactsPath.add(projectArtifactURI);
+        } else {
+            String buildDirectoryString = project.getBuild().getOutputDirectory();
+            File buildDirectory = new File(buildDirectoryString);
+            if (buildDirectory.exists()) {
                 try {
-                    artifactsPath.add(artifact.getFile().toURI().toURL()
-                            .toExternalForm());
+                    String buildDirectoryURI = buildDirectory.toURI().toURL().toExternalForm();
+                    getLog().info("Adding build directory of current project: " + buildDirectoryURI);
+                    artifactsPath.add(buildDirectoryURI);
                 } catch (MalformedURLException e) {
                     getLog().error(e);
                 }
             } else {
-                getLog().warn(
-                        "Artifact "
-                                + artifact
-                                + " could not have been added as the location is unspecified. This happens normally "
-                                + "if the plugin runs on the project without package phase defined before.");
+                getLog().warn("Current project could not be added as a bundle. Please check if this is ok.");
             }
-
         }
 
         return artifactsPath.toArray(new String[artifactsPath.size()]);
+    }
+
+    private String resolveArtifactFileURI(Artifact artifact) {
+        File artifactFile = artifact.getFile();
+        if (artifactFile != null) {
+            try {
+                return artifact.getFile().toURI().toURL().toExternalForm();
+            } catch (MalformedURLException e) {
+                getLog().error(e);
+            }
+        }
+        return null;
     }
 
 }
