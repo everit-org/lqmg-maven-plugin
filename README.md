@@ -2,6 +2,6 @@ lqmg-maven-plugin
 =================
 
 A plugin that makes it possible to generate QueryDSL metadata classes from
-Liquibase changelog files packed in an OSGi bundle.
+Liquibase changelog files packed in OSGi bundles.
 
-Maven site: https://rawgithub.com/everit-org/lqmg-maven-plugin/v2.0.0-doc/index.html
+Maven site: http://everit.org/lqmg-maven-plugin

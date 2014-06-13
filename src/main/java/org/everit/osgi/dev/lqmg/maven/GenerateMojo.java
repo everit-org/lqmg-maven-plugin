@@ -39,11 +39,40 @@ import org.everit.osgi.dev.lqmg.LQMG;
 public class GenerateMojo extends AbstractMojo {
 
     /**
+     * The expression of the schema that should be the starting point of the generation. Expressions references to the
+     * name of a "liquibase.schema" capability of a bundle. E.g. If the bundle has
+     * "Provide-Capability: liquibase.schema;name=mySchema", the value of this property should be simply "mySchema". It
+     * is possible to append filter to the expression. E.g.: mySchema;filter:=("someAttribute=someValue").
+     */
+    @Parameter(required = true, property = "lqmg.capability")
+    private String capability;
+
+    /**
      * The path of the main configuration XML. Optional. If defined, the naming rules in this XML have higher priority
      * than the ones specified in the bundles.
      */
     @Parameter(required = false, property = "lqmg.configFile")
     private String configFile;
+
+    /**
+     * Default schema that appears in the generated Metadata classes. This might be overridden in the liquibase
+     * changelog files for specific tables or views.
+     */
+    @Parameter(required = false, property = "lqmg.defaultSchema")
+    private String defaultSchema;
+
+    /**
+     * If true, bundles that cannot be resolved are re-deployed in the way that their unsatisfied requirements are
+     * changed to be optional.
+     */
+    @Parameter(property = "lqmg.hackWires", defaultValue = "true")
+    private boolean hackWires;
+
+    /**
+     * Whether to generate inner classes in Metadata classes for primary and foreign keys or not.
+     */
+    @Parameter(property = "lqmg.hackWires", defaultValue = "true")
+    private boolean innerClassesForKeys;
 
     /**
      * The folder where source will be generated to.
@@ -69,15 +98,6 @@ public class GenerateMojo extends AbstractMojo {
     @Parameter(property = "executedProject")
     private MavenProject project;
 
-    /**
-     * The expression of the schema that should be the starting point of the generation. Expressions references to the
-     * name of a "liquibase.schema" capability of a bundle. E.g. If the bundle has
-     * "Provide-Capability: liquibase.schema;name=mySchema", the value of this property should be simply "mySchema". It
-     * is possible to append filter to the expression. E.g.: mySchema;filter:=("someAttribute=someValue").
-     */
-    @Parameter(required = true, property = "lqmg.schema")
-    private String schema;
-
     @Override
     public void execute() throws MojoExecutionException {
         getLog().info("Start lqmg-maven-plugin.");
@@ -91,10 +111,14 @@ public class GenerateMojo extends AbstractMojo {
         }
         getLog().info("Generation target folder: " + generationFolder);
         String[] projectArtifactsPath = getProjectArtifactsPath();
-        params = new GenerationProperties(schema,
+        params = new GenerationProperties(capability,
                 projectArtifactsPath, generationFolder);
 
         params.setConfigurationPath(configFile);
+        params.setDefaultSchema(defaultSchema);
+        params.setHackWires(hackWires);
+        params.setInnerClassesForKeys(innerClassesForKeys);
+
         if (packages != null && !packages.trim().equals("")) {
             params.setPackages(packages.split(","));
         }
