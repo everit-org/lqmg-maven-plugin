@@ -41,11 +41,15 @@
   &lt;groupId&gt;org.everit.osgi.dev&lt;/groupId&gt;
   &lt;artifactId&gt;lqmg-maven-plugin&lt;/artifactId&gt;
   &lt;version&gt;3.0.0&lt;/version&gt;
+  &lt;configuration&gt;
+    &lt;defaultSchema&gt;<i>db_schema_in_metadata_classes</i>&lt;/defaultSchema&gt;
+    &lt;capability&gt;<i>capability_expression</i>&lt;/capability&gt;
+  &lt;/configuration&gt;
 &lt;/plugin&gt;</pre>
   </div>
   <p>After that, you can call the following from the command line:</p>
   <div class="source">
-    <pre>mvn package lqmg:generate -Dlqmg.capability=myCapabilityExpr</pre>
+    <pre>mvn package lqmg:generate</pre>
   </div>
   <p>
     The sources will be generated to the src/main/generated/java by default. You can override this via system
