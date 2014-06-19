@@ -23,21 +23,56 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <body>
-	<h1>LQMG Maven Plugin</h1>
+  <h1>LQMG Maven Plugin</h1>
 
-	<h2>Introduction</h2>
+  <h2>Introduction</h2>
 
-	<p>This maven plugin can be used to generate QueryDSL metadata
-		classes from Liquibase changeLog files in the way that the changeLog
-		files are placed into OSGi bundles.</p>
+  <p>This maven plugin can be used to generate QueryDSL metadata classes from Liquibase changeLog files in the way
+    that the changeLog files are placed into OSGi bundles.</p>
 
-	<h2>Usage</h2>
+  <h2>Usage</h2>
 
-	<h3>With configuration in the pom.xml</h3>
-  
-    <p>Place a configuration like this into the pom.xml wher you want to generate the QueryDSL files:</p>
-    <div class="source">
-    <pre></pre>
-    </div>
+  <h3>With configuration in the pom.xml</h3>
+
+  <p>Place a configuration like this into the pom.xml wher you want to generate the QueryDSL files:</p>
+  <div class="source">
+    <pre>
+&lt;plugin&gt;
+  &lt;groupId&gt;org.everit.osgi.dev&lt;/groupId&gt;
+  &lt;artifactId&gt;lqmg-maven-plugin&lt;/artifactId&gt;
+  &lt;version&gt;3.0.0&lt;/version&gt;
+&lt;/plugin&gt;</pre>
+  </div>
+  <p>After that, you can call the following from the command line:</p>
+  <div class="source">
+    <pre>mvn package lqmg:generate -Dlqmg.capability=myCapabilityExpr</pre>
+  </div>
+  <p>
+    The sources will be generated to the src/main/generated/java by default. You can override this via system
+    properties. See the <a href="generate-mojo.html">documentation of generate mojo</a> for more details.
+  </p>
+  <p>
+    It is important to add <strong>package</strong> before the plugin goal if that project contains the liquibase
+    capability where we run the goal of the plugin.
+  </p>
+
+  <h3>Generating sources when there are compilation errors</h3>
+  <p>
+    It might happen that <strong>package</strong> cannot be done on the module as it has compilation errors. In that
+    case the following command can help (assuming that maven-bundle-plugin is used to generate the OSGi MANIFEST
+    headers):
+  </p>
+  <div class="source">
+    <pre>mvn process-resources bundle:manifest lqmg:generate -Dlqmg.capability=<i>capabilityExpr</i></pre>
+  </div>
+  <p>With that command, no compilation will be done. Only the MANIFEST will be created by maven-bundle-plugin and
+    the necessary changelogs will be copied from src/main/resources to target/classes. By running this command, the
+    code generator will use target/classes as the root of the OSGi bundle.</p>
+
+  <h3>Running code generation without pom configuration</h3>
+  <p>In case there is no pom configuration, the full name of the maven plugin must be provided:</p>
+  <div class="source">
+    <pre>mvn package org.everit.osgi.dev:lqmg-maven-plugin:generate -Dlqmg.capability=<i>capabilityExpr</i></pre>
+  </div>
 </body>
 </html>

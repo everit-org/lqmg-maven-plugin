@@ -55,10 +55,10 @@ public class GenerateMojo extends AbstractMojo {
     private String configFile;
 
     /**
-     * Default schema that appears in the generated Metadata classes. This might be overridden in the liquibase
-     * changelog files for specific tables or views.
+     * Default schema that appears in the generated Metadata classes. The schema of tables and views might be overridden
+     * in the changelog files directly.
      */
-    @Parameter(required = false, property = "lqmg.defaultSchema")
+    @Parameter(property = "lqmg.defaultSchema", defaultValue = "${project.artifactId}")
     private String defaultSchema;
 
     /**
@@ -71,7 +71,7 @@ public class GenerateMojo extends AbstractMojo {
     /**
      * Whether to generate inner classes in Metadata classes for primary and foreign keys or not.
      */
-    @Parameter(property = "lqmg.hackWires", defaultValue = "true")
+    @Parameter(property = "lqmg.innerClassesForKeys", defaultValue = "true")
     private boolean innerClassesForKeys;
 
     /**
@@ -119,7 +119,7 @@ public class GenerateMojo extends AbstractMojo {
         params.setHackWires(hackWires);
         params.setInnerClassesForKeys(innerClassesForKeys);
 
-        if (packages != null && !packages.trim().equals("")) {
+        if ((packages != null) && !packages.trim().equals("")) {
             params.setPackages(packages.split(","));
         }
 
@@ -164,7 +164,7 @@ public class GenerateMojo extends AbstractMojo {
         return artifactsPath.toArray(new String[artifactsPath.size()]);
     }
 
-    private String resolveArtifactFileURI(Artifact artifact) {
+    private String resolveArtifactFileURI(final Artifact artifact) {
         File artifactFile = artifact.getFile();
         if (artifactFile != null) {
             try {
