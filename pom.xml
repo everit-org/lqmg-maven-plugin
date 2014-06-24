@@ -48,10 +48,6 @@
 
   <url>http://everit.org</url>
 
-  <ciManagement>
-    <system>Jenkins</system>
-    <url>https://ci.everit.biz/jenkins/job/${projectpath}</url>
-  </ciManagement>
   <issueManagement>
     <system>GitHub</system>
     <url>https://github.com/everit-org/${projectpath}/issues</url>
