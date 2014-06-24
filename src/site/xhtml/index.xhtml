@@ -27,8 +27,24 @@
 
   <h2>Introduction</h2>
 
-  <p>This maven plugin can be used to generate QueryDSL metadata classes from Liquibase changeLog files in the way
-    that the changeLog files are placed into OSGi bundles.</p>
+  <p>
+    This maven plugin can be used to generate QueryDSL metadata classes from Liquibase changeLog files in the way that
+    the changeLog files are placed into OSGi bundles. To get more information about the technical details how the
+    liquibase changelogs are found by this plugin, please read the <a
+      href="http://cookbook.everit.org/persistence/index.html">persistence</a> chapter of our <a
+      href="http://cookbook.everit.org/"> cookbook</a>.
+  </p>
+  <p>
+    When the <a href="generate-mojo.html">generate</a> goal of the plugin is executed:
+  </p>
+  <ul>
+    <li><p>an embedded Equinox OSGi container is started</p></li>
+    <li><p>the maven project and all of its dependencies are deployed to the embedded OSGi container</p></li>
+    <li><p>the liquibase changelog files are processed from the OSGi bundles based on the configuration of the
+        plugin</p></li>
+    <li><p>the database schema is generated on an embedded H2 database</p></li>
+    <li><p>Querydsl metadata classes are generated from H2</p></li>
+  </ul>
 
   <h2>Usage</h2>
 
@@ -44,6 +60,7 @@
   &lt;configuration&gt;
     &lt;defaultSchema&gt;<i>db_schema_in_metadata_classes</i>&lt;/defaultSchema&gt;
     &lt;capability&gt;<i>capability_expression</i>&lt;/capability&gt;
+    &lt;packages&gt;<i>comma_separated_list_of_packages_that_should_be_generated</i>&lt;/packages&gt;
   &lt;/configuration&gt;
 &lt;/plugin&gt;</pre>
   </div>
@@ -52,31 +69,66 @@
     <pre>mvn package lqmg:generate</pre>
   </div>
   <p>
-    The sources will be generated to the src/main/generated/java by default. You can override this via system
-    properties. See the <a href="generate-mojo.html">documentation of generate mojo</a> for more details.
+    The sources will be generated to the <i>src/main/generated/java</i> by default. You can override this via plugin
+    configuration or system properties. See the <a href="generate-mojo.html">documentation of generate mojo</a> for more
+    details.
   </p>
   <p>
-    It is important to add <strong>package</strong> before the plugin goal if that project contains the liquibase
-    capability where we run the goal of the plugin.
+    It is important to add <strong>package</strong> before the plugin goal if the project where the plugin goal is
+    executed, contains relevant liquibase capability.
   </p>
 
-  <h3>Generating sources when there are compilation errors</h3>
+  <h3>Generating sources when there are compilation errors in the project</h3>
   <p>
-    It might happen that <strong>package</strong> cannot be done on the module as it has compilation errors. In that
-    case the following command can help (assuming that maven-bundle-plugin is used to generate the OSGi MANIFEST
+    It might happen that <strong>package</strong> cannot be executed on the maven project as it has compilation errors.
+    In that case the following command can help (assuming that maven-bundle-plugin is used to generate the OSGi MANIFEST
     headers):
   </p>
   <div class="source">
-    <pre>mvn process-resources bundle:manifest lqmg:generate -Dlqmg.capability=<i>capabilityExpr</i></pre>
+    <pre>mvn process-resources bundle:manifest lqmg:generate -Dlqmg.capability=<i>capabilityExpr</i>
+    </pre>
   </div>
-  <p>With that command, no compilation will be done. Only the MANIFEST will be created by maven-bundle-plugin and
-    the necessary changelogs will be copied from src/main/resources to target/classes. By running this command, the
-    code generator will use target/classes as the root of the OSGi bundle.</p>
+  <p>
+    With that command, no compilation will be done. Only the MANIFEST will be created by maven-bundle-plugin and the
+    necessary changelogs will be copied from <i>src/main/resources</i> to <i>target/classes</i>. In case the package
+    phase does not run before the plugin goal, the <i>target/classes</i> folder is checked for the MANIFEST file and
+    liquibase changelog files.
+  </p>
 
   <h3>Running code generation without pom configuration</h3>
   <p>In case there is no pom configuration, the full name of the maven plugin must be provided:</p>
   <div class="source">
-    <pre>mvn package org.everit.osgi.dev:lqmg-maven-plugin:generate -Dlqmg.capability=<i>capabilityExpr</i></pre>
+    <pre>mvn package org.everit.osgi.dev:lqmg-maven-plugin:generate -Dlqmg.capability=<i>capabilityExpr</i> -Dlqmg.packages=<i>packages_that_should_be_generated</i>
+    </pre>
+  </div>
+  <h3>Add the new source folder to compilation</h3>
+  <p>
+    Generating sources for each compilation is slow. We decided to generate source not to the target folder, but to a
+    new source folder of the maven project. In our projects <i>src/main/generated/java</i> is excluded from code quality
+    checks (e.g. checkstyle). If you decide to use the plugin in the same way as we do, you can add the source folder to
+    the maven project with the following configuration:
+  </p>
+  <div class="source">
+    <pre>
+&lt;plugin&gt;
+  &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
+  &lt;artifactId&gt;build-helper-maven-plugin&lt;/artifactId&gt;
+  &lt;version&gt;1.8&lt;/version&gt;
+  &lt;executions&gt;
+    &lt;execution&gt;
+      &lt;phase&gt;generate-sources&lt;/phase&gt;
+      &lt;goals&gt;
+        &lt;goal&gt;add-source&lt;/goal&gt;
+      &lt;/goals&gt;
+      &lt;configuration&gt;
+        &lt;sources&gt;
+          &lt;source&gt;src/main/generated/java/&lt;/source&gt;
+        &lt;/sources&gt;
+      &lt;/configuration&gt;
+    &lt;/execution&gt;
+  &lt;/executions&gt;
+&lt;/plugin&gt;
+    </pre>
   </div>
 </body>
 </html>
