@@ -29,15 +29,15 @@
   <groupId>org.everit.osgi.dev</groupId>
   <artifactId>lqmg-maven-plugin</artifactId>
   <packaging>maven-plugin</packaging>
-  <version>3.0.0</version>
+  <version>3.0.1</version>
 
   <name>Everit - LQMG Maven Plugin</name>
   <description>A plugin that makes it possible to generate QueryDSL metadata classes from Liquibase changelog files that are packaged in OSGi bundle.</description>
 
   <properties>
     <projectpath>lqmg-maven-plugin</projectpath>
-    <maven.compiler.source>1.6</maven.compiler.source>
-    <maven.compiler.target>1.6</maven.compiler.target>
+    <maven.compiler.source>1.7</maven.compiler.source>
+    <maven.compiler.target>1.7</maven.compiler.target>
   </properties>
 
   <scm>
@@ -114,7 +114,7 @@
     <dependency>
       <groupId>org.everit.osgi.dev</groupId>
       <artifactId>org.everit.osgi.dev.lqmg</artifactId>
-      <version>3.0.0</version>
+      <version>3.0.1</version>
     </dependency>
 
     <!-- Maven -->
