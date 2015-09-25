@@ -1,18 +1,17 @@
-/**
- * This file is part of Everit - LQMG Maven Plugin.
+/*
+ * Copyright (C) 2011 Everit Kft. (http://www.everit.biz)
  *
- * Everit - LQMG Maven Plugin is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * Everit - LQMG Maven Plugin is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ *         http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with Everit - LQMG Maven Plugin.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.everit.osgi.dev.lqmg.maven;
 
@@ -35,145 +34,150 @@ import org.everit.osgi.dev.lqmg.LQMG;
 /**
  * Generates QueryDSL Metadata classes from Liquibase schema files.
  */
-@Mojo(name = "generate", requiresProject = true, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
+@Mojo(name = "generate", requiresProject = true,
+    requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 public class GenerateMojo extends AbstractMojo {
 
-    /**
-     * The expression of the schema that should be the starting point of the generation. Expressions references to the
-     * name of a "liquibase.schema" capability of a bundle. E.g. If the bundle has
-     * "Provide-Capability: liquibase.schema;name=mySchema", the value of this property should be simply "mySchema". It
-     * is possible to append filter to the expression. E.g.: mySchema;filter:=("someAttribute=someValue").
-     */
-    @Parameter(required = true, property = "lqmg.capability")
-    private String capability;
+  /**
+   * The expression of the schema that should be the starting point of the generation. Expressions
+   * references to the name of a "liquibase.schema" capability of a bundle. E.g. If the bundle has
+   * "Provide-Capability: liquibase.schema;name=mySchema", the value of this property should be
+   * simply "mySchema". It is possible to append filter to the expression. E.g.:
+   * mySchema;filter:=("someAttribute=someValue").
+   */
+  @Parameter(required = true, property = "lqmg.capability")
+  private String capability;
 
-    /**
-     * The path of the main configuration XML. Optional. If defined, the naming rules in this XML have higher priority
-     * than the ones specified in the bundles.
-     */
-    @Parameter(required = false, property = "lqmg.configFile")
-    private String configFile;
+  /**
+   * The path of the main configuration XML. Optional. If defined, the naming rules in this XML have
+   * higher priority than the ones specified in the bundles.
+   */
+  @Parameter(required = false, property = "lqmg.configFile")
+  private String configFile;
 
-    /**
-     * Default schema that appears in the generated Metadata classes. The schema of tables and views might be overridden
-     * in the changelog files directly.
-     */
-    @Parameter(property = "lqmg.defaultSchema", defaultValue = "${project.artifactId}")
-    private String defaultSchema;
+  /**
+   * Default schema that appears in the generated Metadata classes. The schema of tables and views
+   * might be overridden in the changelog files directly.
+   */
+  @Parameter(property = "lqmg.defaultSchema", defaultValue = "${project.artifactId}")
+  private String defaultSchema;
 
-    /**
-     * If true, bundles that cannot be resolved are re-deployed in the way that their unsatisfied requirements are
-     * changed to be optional.
-     */
-    @Parameter(property = "lqmg.hackWires", defaultValue = "true")
-    private boolean hackWires;
+  /**
+   * If true, bundles that cannot be resolved are re-deployed in the way that their unsatisfied
+   * requirements are changed to be optional.
+   */
+  @Parameter(property = "lqmg.hackWires", defaultValue = "true")
+  private boolean hackWires;
 
-    /**
-     * Whether to generate inner classes in Metadata classes for primary and foreign keys or not.
-     */
-    @Parameter(property = "lqmg.innerClassesForKeys", defaultValue = "true")
-    private boolean innerClassesForKeys;
+  /**
+   * Whether to generate inner classes in Metadata classes for primary and foreign keys or not.
+   */
+  @Parameter(property = "lqmg.innerClassesForKeys", defaultValue = "true")
+  private boolean innerClassesForKeys;
 
-    /**
-     * The folder where source will be generated to.
-     */
-    @Parameter(required = true, property = "lqmg.outputFolder", defaultValue = "src/main/generated/java")
-    private String outputFolder;
+  /**
+   * The folder where source will be generated to.
+   */
+  @Parameter(required = true, property = "lqmg.outputFolder",
+      defaultValue = "src/main/generated/java")
+  private String outputFolder;
 
-    /**
-     * Comma separated list of packages that should be generated. If not defined, all packages will be generated.
-     */
-    @Parameter(required = false, property = "lqmg.packages")
-    private String packages;
+  /**
+   * Comma separated list of packages that should be generated. If not defined, all packages will be
+   * generated.
+   */
+  @Parameter(required = false, property = "lqmg.packages")
+  private String packages;
 
-    /**
-     * Map of plugin artifacts.
-     */
-    @Parameter(defaultValue = "${plugin.artifactMap}", required = true, readonly = true)
-    protected Map<String, Artifact> pluginArtifactMap;
+  /**
+   * Map of plugin artifacts.
+   */
+  @Parameter(defaultValue = "${plugin.artifactMap}", required = true, readonly = true)
+  protected Map<String, Artifact> pluginArtifactMap;
 
-    /**
-     * The {@link MavenProject} which call the lqmg-maven-plugin.
-     */
-    @Parameter(property = "executedProject")
-    private MavenProject project;
+  /**
+   * The {@link MavenProject} which call the lqmg-maven-plugin.
+   */
+  @Parameter(property = "executedProject")
+  private MavenProject project;
 
-    @Override
-    public void execute() throws MojoExecutionException {
-        getLog().info("Start lqmg-maven-plugin.");
-        GenerationProperties params = null;
+  @Override
+  public void execute() throws MojoExecutionException {
+    getLog().info("Start lqmg-maven-plugin.");
+    GenerationProperties params = null;
 
-        File targetFolderFile = new File(outputFolder);
-        String generationFolder = new File(project.getBasedir()
-                .getAbsolutePath(), outputFolder).getAbsolutePath();
-        if (targetFolderFile.isAbsolute()) {
-            generationFolder = new File(outputFolder).getAbsolutePath();
-        }
-        getLog().info("Generation target folder: " + generationFolder);
-        String[] projectArtifactsPath = getProjectArtifactsPath();
-        params = new GenerationProperties(capability,
-                projectArtifactsPath, generationFolder);
+    File targetFolderFile = new File(outputFolder);
+    String generationFolder = new File(project.getBasedir()
+        .getAbsolutePath(), outputFolder).getAbsolutePath();
+    if (targetFolderFile.isAbsolute()) {
+      generationFolder = new File(outputFolder).getAbsolutePath();
+    }
+    getLog().info("Generation target folder: " + generationFolder);
+    String[] projectArtifactsPath = getProjectArtifactsPath();
+    params = new GenerationProperties(capability,
+        projectArtifactsPath, generationFolder);
 
-        params.setConfigurationPath(configFile);
-        params.setDefaultSchema(defaultSchema);
-        params.setHackWires(hackWires);
-        params.setInnerClassesForKeys(innerClassesForKeys);
+    params.setConfigurationPath(configFile);
+    params.setDefaultSchema(defaultSchema);
+    params.setHackWires(hackWires);
+    params.setInnerClassesForKeys(innerClassesForKeys);
 
-        if ((packages != null) && !packages.trim().equals("")) {
-            params.setPackages(packages.split(","));
-        }
-
-        LQMG.generate(params);
-        getLog().info("Finished the metamodell generation at path " + generationFolder);
+    if ((packages != null) && !"".equals(packages.trim())) {
+      params.setPackages(packages.split(","));
     }
 
-    private String[] getProjectArtifactsPath() throws MojoExecutionException {
-        Set<String> artifactsPath = new HashSet<String>();
+    LQMG.generate(params);
+    getLog().info("Finished the metamodell generation at path " + generationFolder);
+  }
 
-        @SuppressWarnings("unchecked")
-        Set<Artifact> dependencyArtifacts = project.getArtifacts();
-        for (Artifact artifact : dependencyArtifacts) {
-            String artifactFileURI = resolveArtifactFileURI(artifact);
-            if (artifactFileURI != null) {
-                getLog().info("Adding artifact: " + artifactFileURI);
-                artifactsPath.add(artifactFileURI);
-            }
-        }
+  private String[] getProjectArtifactsPath() throws MojoExecutionException {
+    Set<String> artifactsPath = new HashSet<String>();
 
-        Artifact projectArtifact = project.getArtifact();
-        String projectArtifactURI = resolveArtifactFileURI(projectArtifact);
-        if (projectArtifactURI != null) {
-            getLog().info("Adding artifact (current project): " + projectArtifactURI);
-            artifactsPath.add(projectArtifactURI);
-        } else {
-            String buildDirectoryString = project.getBuild().getOutputDirectory();
-            File buildDirectory = new File(buildDirectoryString);
-            if (buildDirectory.exists()) {
-                try {
-                    String buildDirectoryURI = buildDirectory.toURI().toURL().toExternalForm();
-                    getLog().info("Adding build directory of current project: " + buildDirectoryURI);
-                    artifactsPath.add(buildDirectoryURI);
-                } catch (MalformedURLException e) {
-                    getLog().error(e);
-                }
-            } else {
-                getLog().warn("Current project could not be added as a bundle. Please check if this is ok.");
-            }
-        }
-
-        return artifactsPath.toArray(new String[artifactsPath.size()]);
+    @SuppressWarnings("unchecked")
+    Set<Artifact> dependencyArtifacts = project.getArtifacts();
+    for (Artifact artifact : dependencyArtifacts) {
+      String artifactFileURI = resolveArtifactFileURI(artifact);
+      if (artifactFileURI != null) {
+        getLog().info("Adding artifact: " + artifactFileURI);
+        artifactsPath.add(artifactFileURI);
+      }
     }
 
-    private String resolveArtifactFileURI(final Artifact artifact) {
-        File artifactFile = artifact.getFile();
-        if (artifactFile != null) {
-            try {
-                return artifact.getFile().toURI().toURL().toExternalForm();
-            } catch (MalformedURLException e) {
-                getLog().error(e);
-            }
+    Artifact projectArtifact = project.getArtifact();
+    String projectArtifactURI = resolveArtifactFileURI(projectArtifact);
+    if (projectArtifactURI != null) {
+      getLog().info("Adding artifact (current project): " + projectArtifactURI);
+      artifactsPath.add(projectArtifactURI);
+    } else {
+      String buildDirectoryString = project.getBuild().getOutputDirectory();
+      File buildDirectory = new File(buildDirectoryString);
+      if (buildDirectory.exists()) {
+        try {
+          String buildDirectoryURI = buildDirectory.toURI().toURL().toExternalForm();
+          getLog().info("Adding build directory of current project: " + buildDirectoryURI);
+          artifactsPath.add(buildDirectoryURI);
+        } catch (MalformedURLException e) {
+          getLog().error(e);
         }
-        return null;
+      } else {
+        getLog()
+            .warn("Current project could not be added as a bundle. Please check if this is ok.");
+      }
     }
+
+    return artifactsPath.toArray(new String[artifactsPath.size()]);
+  }
+
+  private String resolveArtifactFileURI(final Artifact artifact) {
+    File artifactFile = artifact.getFile();
+    if (artifactFile != null) {
+      try {
+        return artifact.getFile().toURI().toURL().toExternalForm();
+      } catch (MalformedURLException e) {
+        getLog().error(e);
+      }
+    }
+    return null;
+  }
 
 }
