@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.everit.osgi.dev.lqmg.maven;
+package org.everit.persistence.lqmg.maven;
 
 import java.io.File;
 import java.net.MalformedURLException;

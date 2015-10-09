@@ -18,6 +18,6 @@
 -->
 <FindBugsFilter>
   <Match>
-    <Class name="~org\.everit\.osgi\.dev\.lqmg\.maven\.HelpMojo.*" />
+    <Class name="~org\.everit\.persistence\.lqmg\.maven\.HelpMojo.*" />
   </Match>
 </FindBugsFilter>
