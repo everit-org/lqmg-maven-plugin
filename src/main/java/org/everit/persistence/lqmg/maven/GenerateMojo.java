@@ -28,8 +28,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.everit.osgi.dev.lqmg.GenerationProperties;
-import org.everit.osgi.dev.lqmg.LQMG;
+import org.everit.persistence.lqmg.GenerationProperties;
+import org.everit.persistence.lqmg.LQMG;
 
 /**
  * Generates QueryDSL Metadata classes from Liquibase schema files.
