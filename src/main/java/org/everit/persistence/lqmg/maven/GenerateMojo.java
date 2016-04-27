@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.everit.persistence.lqmg.maven;
 
 import java.io.File;
@@ -41,8 +42,8 @@ public class GenerateMojo extends AbstractMojo {
   /**
    * The expression of the schema that should be the starting point of the generation. Expressions
    * references to the name of a "liquibase.schema" capability of a bundle. E.g. If the bundle has
-   * "Provide-Capability: liquibase.schema;name=mySchema", the value of this property should be
-   * simply "mySchema". It is possible to append filter to the expression. E.g.:
+   * "Provide-Capability: liquibase.changelog;liquibase.changelog=mySchema", the value of this
+   * property should be simply "mySchema". It is possible to append filter to the expression. E.g.:
    * mySchema;filter:=("someAttribute=someValue").
    */
   @Parameter(required = true, property = "lqmg.capability")
