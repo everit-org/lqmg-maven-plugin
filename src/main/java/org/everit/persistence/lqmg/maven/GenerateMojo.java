@@ -57,6 +57,12 @@ public class GenerateMojo extends AbstractMojo {
   private String configFile;
 
   /**
+   * Comma separated list of contexts Liquibase is running under.
+   */
+  @Parameter(required = false, property = "lqmg.contexts")
+  private String contexts;
+
+  /**
    * Default schema that appears in the generated Metadata classes. The schema of tables and views
    * might be overridden in the changelog files directly.
    */
@@ -122,6 +128,7 @@ public class GenerateMojo extends AbstractMojo {
     params.setDefaultSchema(defaultSchema);
     params.setHackWires(hackWires);
     params.setInnerClassesForKeys(innerClassesForKeys);
+    params.setContexts(contexts);
 
     if ((packages != null) && !"".equals(packages.trim())) {
       params.setPackages(packages.split(","));
