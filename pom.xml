@@ -28,7 +28,7 @@
 
   <groupId>org.everit.persistence</groupId>
   <artifactId>lqmg-maven-plugin</artifactId>
-  <version>4.1.0</version>
+  <version>4.1.1</version>
 
   <packaging>maven-plugin</packaging>
 
@@ -144,7 +144,7 @@
     <dependency>
       <groupId>org.everit.persistence</groupId>
       <artifactId>org.everit.persistence.lqmg</artifactId>
-      <version>4.1.0</version>
+      <version>4.1.1</version>
     </dependency>
 
     <!-- Maven -->
